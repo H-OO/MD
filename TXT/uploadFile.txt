@@ -1,0 +1,24 @@
+使用FormData对象进行文件上传
+
+步骤1
+使用<input type="file">标签获取上传文件
+
+步骤2
+通过js获取input元素，使用[input元素].files获取文件对象
+eg: var file = document.getElementById('file');
+  var files = file.files;
+
+步骤3
+创建表单 var formData = new FormData()，使用表单对象的append方法加入name和value
+// 单文件上传
+eg: formData.append('fileData', files[0]);
+// 多文件上传 (input标签需使用multiple属性)
+ps:多文件上传name书写格式'name[]'，改命名是由后台框架来决定的
+eg: formData.append('fileData[]', files[0]);
+  formData.append('fileData[]', files[1]);
+
+步骤4
+使用ajax异步上传注意事项
+1.不处理发送的数据，因为data值是Formdata对象，不需要对数据做处理 => (processData:false)
+2.不设置Content-type请求头 => (contentType:false)
+

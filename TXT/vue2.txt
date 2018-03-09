@@ -1,0 +1,627 @@
+﻿------------------------------------------------------
+
+父传子 props
+场景：将父组件中的实例data对象中的某个属性 eg: isArr 传递给子组件
+方法：父组件中使用Vue.component()方法注册子组件
+eg:
+全局注册的子组件
+Vue.component('子组件名(标签名)', {
+  props: ['accept'], // 将父组件实例中的data对象的属性传递给子组件（可以同时传递多个）作用等同于data属性
+  template: '<div>{{accept}}</div>' // html片段 子组件只能有一个根元素
+})
+new Vue({
+  el: '#app',
+  data: {
+    msg: 'p to c'
+  }
+})
+<div id="app">
+  <注册的子组件名 :accept="msg"></注册的子组件名>
+</div>
+:accept="msg" // 动态绑定父组件中的data对象中的属性（没有动态绑定msg只是简单的字符串）
+
+------------------------------------------------------
+
+子传父 自定义事件 $emit触发自定义事件 $on监听事件是否被触发执行回调
+Vue.component('子组件名(标签名)', {
+  template: '<input @click="click" value="click">',
+  methods: {
+    click: function () {
+      this.$emit('DIY事件名'); // 触发自定义事件
+    }
+  },
+})
+new Vue({
+  el: '#app',
+  methods: {
+    reply: function () {
+      // 执行相关操作
+    }
+  }
+})
+<div id="app">
+  <子组件名 v-on:DIY事件名="reply"></子组件名>
+</div>
+// 子组件标签中监听子组件内部是否触发DIY事件，若是触发就执行绑定的方法
+
+------------------------------------------------------
+
+非父子组件通信
+
+使用空的vue实例作为事件总线
+
+
+
+------------------------------------------------------
+
+vue实例创建会返回一个对象，可以用变量vm将这个对象保存起来，
+该对象包含了data对象的属性跟一些实例属性和方法（都有前缀$，用于区分用户自定义的属性）
+eg:
+$watch 是一个实例的方法
+vm.$watch('data的属性', function (newValue, oldValue) {
+  // data的属性的属性值发生改变，触发回调
+})
+
+------------------------------------------------------
+
+注意：
+一、
+只有当vue实例被创建时data中存在的属性才是响应式的，后来加入的属性不存在响应式，也就是说，后来加入的属性的属性值改变不会触发视图的刷新
+解决办法：
+可以事先为data对象的属性设置一些初始值，给后期可能用到的地方做准备
+二、
+不要在选项属性或回调上使用箭头函数，箭头函数是和父级上下文绑定在一起的，箭头函数的this并不指向vue实例
+三、
+每个绑定都只能包含单个表达式，流控制不会生效，需使用三元表达式
+四、
+不要滥用watch属性进行值监听，使用computed属性更为合适，但是需要在数据改变时异步执行操作或开销较大的操作时，可以使用watch
+五、
+由于 JavaScript 的限制，Vue 不能检测以下变动的数组（视图不更新）
+问题1.当你利用索引直接设置一个项时，例如：vm.items[indexOfItem] = newValue，视图不更新
+问题2.当你修改数组的长度时，例如：vm.items.length = newLength，视图不更新
+解决方法：（视图更新）
+解决问题1：
+Vue.set(example1.items, indexOfItem, newValue) // Vue.set
+example.items.splice(indexOfItem, 1, newValue) // Array.prototype.splice
+解决问题2：
+example.items.splice(newLength)
+六、
+由于 JavaScript 的限制，Vue 不能检测对象属性的添加或删除（视图不更新）
+问题.当利用之前没有定义的属性直接设置一个属性值时，例如：vm.items[newKey] = newValue，视图不更新
+解决方法：（视图更新）
+单个添加：Vue.$set(vm.items, newKey, newValue)
+多个添加：vm.items = Object.assign({}, vm.items, {newKey: newValue})
+七、
+v-for 必须和 v-bind:key 一起使用
+八、
+子组件只能有一个根元素，多个根元素会导致vue报错
+九、
+父组件模板的内容在父组件作用域内编译；子组件模板的内容在子组件作用域内编译
+在父组件模板内将一个指令绑定到子组件的属性/方法都不是无效的
+<v-child v-show="isShow"></v-child> // 无效的
+十、
+注册的子组件名称使用正常的html规范，避免解析错误
+
+------------------------------------------------------
+
+实例生命周期
+生命周期钩子函数的this指向vue实例
+created // vue实例创建完毕后调用 this指向vm实例
+computed // 计算属性 响应data对象的属性变化 前提是计算属性里面的方法引用了data对象中的属性
+watch // 监听属性 能监听data对象中属性的变化 能实现与计算属性相同的作用 但推荐优先使用计算属性
+
+
+------------------------------------------------------
+
+vue指令:
+{{}}
+v-if v-else-if v-else
+v-for
+v-bind:[Attr] <==> :[Attr]
+v-on:[Event] <==> @[Event]
+v-model
+v-once
+.
+
+v-bind:disabled="state" // data对象中对应的属性为true 按钮不能被点击 变为灰色
+v-on:submit.prevent // .prevent 修饰符告诉 v-on 指令对于触发的时间调用 event.preventDefault() 方法
+v-bind:class="{类名: true|false}" // 动态添加类名
+
+------------------------------------------------------
+
+computed属性的get和set
+
+引用了data对象的属性，但属性值发生改变，计算属性中的方法包含data对象的发生修改的属性，那么计算属性的方法将被调用（需要在元素中绑定计算属性的方法，接收返回值）
+
+eg: 
+// get
+new Vue({
+  computed: {
+    edit: function () {
+      return ;
+    }
+  }
+})
+
+// get or set
+new Vue({
+  computed: function () {
+    edit: {
+      get: function () {
+        // 初始化和data对象属性的修改会调用该方法
+        // 调用set方法 该方法会再次调用
+        return ;
+      },
+      set: function (newValue) {
+        // 对data对象属性进行操作 无需return get方法会被再次调用 触发视图刷新
+      }
+    }
+  }
+})
+
+------------------------------------------------------
+
+watch属性
+
+new Vue({
+  data: {
+    msg: ''
+  }
+  watch: {
+    msg: function (newValue, oldValue) {
+      // 异步执行
+    }
+  }
+})
+
+------------------------------------------------------
+
+命令式$watch
+// 接收vue实例的属性和方法
+var vm = new Vue({});
+// 调用vue实例的值监听方法 返回值为停止监听的方法
+var unwatch = vm.$watch('', function () {
+  // 回调
+});
+// 停止监听 unwatch();
+
+------------------------------------------------------
+
+利用computed属性动态添加类名
+new Vue({
+  el: '#app',
+  data: {
+    isActive: true // 是否显示类名
+  },
+  computed: {
+    classObj: function () { // v-bind:class="classObj" 调用
+      return { // 返回的对象
+        active: this.isActive
+      }
+    }
+  }
+})
+
+------------------------------------------------------
+
+绑定类名的方式
+v-bind:class="{active: isActive}" // 对象
+v-bind:class="[active1, active2]" // 数组
+v-bind:class="isActive === true ? active1 : active2 " // 三元表达式
+v-bind:class="[{active1: isActive}, active2]" // active2固定 active1动态添加
+
+------------------------------------------------------
+
+绑定内联样式
+v-bind:style="{color: activeColor}"
+
+------------------------------------------------------
+
+数组更新检测
+变异方法（会触发视图更新）
+push()
+pop()
+shift()
+unshift()
+splice()
+sort()
+reverse()
+
+替换数组（触发视图更新）
+filter()
+concat()
+slice()
+
+------------------------------------------------------
+
+显示过滤/排序结果
+
+v-for="item in dataFilter" // dataFilter isFunction in computed
+
+eg: （Arr | Obj 同理）
+new Vue({
+  computed: function () {
+    data: {
+      dataArr: []
+    },
+    return this.dataArr.filter(function (item) {
+      // 注意是符合筛选条件才能return出去 push进接收数组
+      return
+    })
+  }
+})
+
+------------------------------------------------------
+
+$event 原始的DOM事件
+
+使用方法: @click="'param1', $event"
+需要将MouseEvent对象作为参数$event进行传回才可使用
+
+------------------------------------------------------
+
+事件修饰符
+.stop // 停止冒泡
+.prevent // 停止默认行为
+.capture // 使用事件捕获模式
+.self // 只当在 event.target 是当前元素自身时触发
+.once // 事件将只会触发一次
+
+让常用的event.preventDefault() 或 event.stopPropagation()操作变得简单
+eg: @click.stop="" // 阻止点击事件冒泡到父元素
+
+------------------------------------------------------
+
+按键修饰符
+.enter
+.tab
+.delete (捕获“删除”和“退格”键)
+.esc
+.space
+.up
+.down
+.left
+.right
+
+使用方式：v-on:keyup.enter=""
+
+可以通过全局 config.keyCodes 对象自定义按键修饰符别名
+eg: Vue.config.keyCodes.f1 = 112 // 可以使用 v-on:keyup.f1
+
+------------------------------------------------------
+
+系统修饰键
+.ctrl
+.alt
+.shift
+.meta
+.exact // 精确匹配按键组合
+
+eg: v-on:click.ctrl="" // 按下其他键+ctrl键点击也会触发，不精确到按键组合
+eg: v-on:click.ctrl.exact="" // 仅只有按下ctrl点击才触发，精确
+
+------------------------------------------------------
+
+鼠标按钮修饰符
+.left
+.right
+.middle
+
+使用方式：v-on:click.left=""
+
+------------------------------------------------------
+
+表单输入绑定
+主要是使用v-model进行双向绑定
+type="text" // @focus="" 获取焦点调用方法
+type="checkbox" // 选框 可以用于单选框和多选框的制作（单选不使用type="radio"，多选的状态用数组进行保存）
+@click="" // 点击触发对应的方法
+
+
+单选下拉列表：
+<select v-model="selected">
+  <option disabled>请选择</option>
+  <option value="A">A</option>
+  <option value="B">B</option>
+</select>
+v-model="selected" // 会将选中的option标签的value值重新赋值给模型 data → selected: '请选择'
+
+多选列表：
+<select v-model="manySelected" multiple>
+  <option disabled>多选</option>
+  <option value="A">A</option>
+  <option value="B">B</option>
+</select>
+v-model="manySelected" // 会将选中的option标签的value值重新赋值给模型 data → manySelected: []
+
+还可以使用v-for动态给定选项 <option v-for=""></option>
+
+v-model修饰符
+.number // 转number，转成NaN则返回原值
+.trim // 过滤首尾空格
+
+------------------------------------------------------
+
+组件
+
+注册全局组件：
+Vue.component(tagName, options) // tagName isStr 、options isObj
+eg: 
+// 注册子组件
+Vue.component('v-childTag', {
+  template: '<>{{msg}}</>',
+  data: function () {
+    return {
+      msg: ''
+    }
+  }
+})
+// 实例化挂载到元素上
+new Vue({
+  el: '#app' // 挂载元素
+})
+
+
+注册局部组件：
+使用vue实例中的components属性进行子组件的注册
+new Vue({
+  components: {
+    'v-childTag': {
+      template: '<div>{{msg}}</div>',
+      data: function () {
+        return {
+          msg: ''
+        }
+      }
+    }
+  }
+})
+
+------------------------------------------------------
+
+v-on 修饰符
+.native // 监听一个原生事件
+
+------------------------------------------------------
+
+slot标签
+当<子组件></子组件>在父模板中对子组件标签无分发内容时，slot标签中的内容将会显示
+分发内容操作：<子组件><div>具体分发的内容</div></子组件>
+
+------------------------------------------------------
+
+动态组件
+使用component标签+动态绑定is属性，实现tab栏效果
+<component :is="currentView"></component>
+
+------------------------------------------------------
+
+使用keep-alive标签包裹可以将切换出去的组件进行缓存，保留状态或避免重新渲染
+
+------------------------------------------------------
+
+子组件引用
+ref属性为子组件指定一个ID为child
+
+eg：
+<div id="app">
+  <子组件 ref="child"></子组件>
+</div>
+
+访问子组件实例：
+var vm = new Vue({el: '#app'});
+var child = vm.$refs.child;
+
+注意：$refs只是一个直接操作子组件的应急方案，避免在模板或计算属性中使用$refs
+
+------------------------------------------------------
+
+inline-template 内联模板
+使用方式：
+<vchild inline-template>
+  <div>不会被作为发布内容</div>
+</vchild>
+
+------------------------------------------------------
+
+script标签中定义模板
+定义模板：
+<script type="text/x-template" id="xxx-template">
+  // 正常书写html片段
+</script>
+使用模板：
+<script>
+  Vue.component('组件名(标签名)', {
+    template: '#xxx-template'
+  })
+</script>
+
+------------------------------------------------------
+
+对低开销的静态组件使用 v-once 可以将渲染结果缓存起来复用
+使用方式：<div v-once></div>
+
+------------------------------------------------------
+
+动画效果
+
+使用 transition标签 可以给任意元素或组件添加[进入/离开]过渡效果
+
+四种使用情景：
+条件渲染 (使用 v-if)
+条件展示 (使用 v-show)
+动态组件
+组件根节点
+
+标签使用：
+<transition name="fade">
+  <div v-if="show">通过控制show的bool值显示/隐藏查看过渡效果</div>
+</transition>
+name属性表示过渡的类型
+name='fade'为淡入淡出效果
+
+过渡类名：
+
+
+
+相关类名使用方式
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active in below version 2.1.8 */ {
+  opacity: 0
+}
+
+------------------------------------------------------
+
+混合复用
+
+使用场景 可以将工具方法进行复用
+
+// 工具对象（混合对象）
+var tools = {
+  methods: {
+    // 方法名: function () {}
+  }
+};
+
+// vue实例（合并混合对象）
+var vm = new Vue({
+  mixins: [tools], // 将工具对象与组件进行合并
+  methods: {
+    // 方法名: function () {}
+  }
+});
+
+ps:键名冲突只调用组件内部的方法
+
+优点就是将常用的工具类抽取封装成js再需要使用的组件中进行引入合并
+
+------------------------------------------------------
+
+自定义指令
+
+// 注册一个全局自定义指令 v-focus
+Vue.directive('focus', {
+  inserted: function (el) { // 当绑定元素插入DOM时执行
+    el.focus(); // 获取焦点
+  }
+})
+
+// 注册一个局部自定义指令
+new Vue({
+  directives: {
+    focus: {
+      inserted: function (el) { // 当绑定元素插入DOM时执行
+        el.focus();
+      }
+    }
+  }
+})
+
+------------------------------------------------------
+
+指令定义对象可选用的钩子函数
+
+bind // 指令第一次绑定到元素时调用，只调用一次
+inserted // 被绑定元素插入父节点时调用（只保证父节点存在，不保证已插入文档中）
+update
+componentUpdated
+unbind // 指令与元素解绑时调用，只调用一次
+
+指令钩子函数的参数
+el // 指令绑定的元素，可用来直接操作DOM
+binding // 一个对象 包含许多信息 例如指令名称和数据模型等
+vnode // Vue编译生成的虚拟节点
+oldVnode // 上一个虚拟节点
+
+注意：除了el外，其他参数都应该是只读的
+如果需要钩子之间共享数据，建议通过元素的 dataset 来进行
+
+------------------------------------------------------
+
+render渲染函数
+
+new Vue({
+  render: function (createElement) {
+    return createElement('标签名', this.msg) // <标签名></标签名>
+  }
+})
+
+过程：createElement() 方法创建虚拟DOM，返回的虚拟DOM交由render函数渲染
+
+------------------------------------------------------
+
+filters过滤器
+
+// 全局
+Vue.filter('方法名', function (value) {
+  return newValue
+})
+
+// 局部
+new Vue({
+  filters: {
+    // 方法: function (value) {return value}
+  }
+})
+
+使用方式1：{{msg | 过滤方法}}
+使用方式2: <div :id="msg | 过滤方法"></div>
+
+过滤器可以串联 {{msg | 过滤规则1 | 过滤规则2}} // 先进行规则1，再把内容给规则2
+
+------------------------------------------------------
+
+vuex 状态管理
+
+情景：如果你有一处需要被多个实例间共享的状态，可以简单地通过维护一份数据来实现共享
+
+------------------------------------------------------
+
+vue-router
+
+步骤一
+使用Vue.use()安装路由功能
+↓
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+Vue.use(VueRouter)
+
+步骤二
+import组件，将组件(components)映射到路由(routes)
+↓
+import Home from './xxx/home'
+const routes = [
+  {path: '/home', component: Home}
+]
+
+步骤三
+创建VueRouter实例，传入routes配置
+↓
+const router = new VueRouter({
+  routes
+})
+
+步骤四
+创建和挂载根实例
+↓
+方式1
+const app = new Vue({
+  el: '#app',
+  router
+})
+方式2
+const app = new Vue({
+  router
+}).$mount('#app')
+
+HTML
+// 使用router-link标签导航（最终会被渲染成a标签）
+<router-link></router-link>
+// router-link标签中to属性用来设置导航链接
+<router-link to="/路径"></router-link>
+// 路由匹配的组件渲染位置，使用router-view标签（相对于占位作用）
+<router-view></router-view>
+
+------------------------------------------------------

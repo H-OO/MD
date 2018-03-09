@@ -1,0 +1,2 @@
+﻿【CSS】
+text-transform: uppercase; // 小写字母转大写

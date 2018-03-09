@@ -1,0 +1,43 @@
+﻿// nodeJS 2019.9.30
+
+【routes>index.js】
+
+// server
+
+var express = require('express');
+var router = express.Router();
+
+// 静态资源中间件
+router.use(express.static('public')); // 使用静态资源中间件
+router.use(express.static('files')); // 使用文件中间件
+
+router.use('/static', express.static('public')); // 访问静态资源相对路径 /static
+// or
+router.use('/static', express.static(__dirname + '/public')); // 访问静态资源绝对路径 /
+
+// 允许所有跨域请求
+router.all('*', function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
+  res.header("X-Powered-By", ' 3.2.1');
+  res.header("Content-Type", "application/json;charset=utf-8");
+  next();
+});
+
+// client
+
+// JQ ajax配置
+dataType: 'JSON/TEXT'// 对应的数据格式，配置错误回导致数据无法进入success回调
+
+// 字符串转对象
+JSON.parse() // 返回的JSON数据格式 '{"name": "yy"}'，格式不对会无法解析
+
+
+// 路由
+router.get('/', function(req, res) { // 第一个参数为请求
+
+})
+
+// 启动应用
+set DEBUG=myapp & npm start

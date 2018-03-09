@@ -1,0 +1,15 @@
+Listen 8081
+NameVirtualHost *:8081
+<VirtualHost *:8081>
+    ServerAdmin webmaster@dummy-host.localhost
+    DocumentRoot "D:\work\svn\DiZhiFu"
+    ServerName localhost
+    ServerAlias localhost
+    ErrorLog "logs/dummy-host.localhost-error.log"
+    CustomLog "logs/dummy-host.localhost-access.log" common
+	<Directory "D:\work\svn\DiZhiFu">
+		Options Indexes FollowSymLinks Includes ExecCGI
+		AllowOverride All
+		Require all granted
+	</Directory>
+</VirtualHost>

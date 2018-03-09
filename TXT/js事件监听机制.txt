@@ -1,0 +1,34 @@
+﻿// JS的事件监听机制
+
+事件从根节点开始，逐级派送到子节点，若节点绑定了事件动作，则执行动作，然后继续走，这个阶段称为“捕获阶段(Capture)”；
+执行完捕获阶段后，事件由子节点往根节点派送，若节点绑定了事件动作，则执行动作，然后继续走，这个阶段称为“冒泡阶段(Bubble)”。
+
+// 绑定事件
+
+非IE遵循W3C定义的addEventListener函数绑定
+function addEventListener(string eventFlag, function eventFunc, [bool useCapture=false])
+eventFlag : 事件名称，如click、mouseover…
+eventFunc: 绑定到事件中执行的动作
+useCapture: 指定是否绑定在捕获阶段，true为是，false为否，默认为true
+在事件监听流中可以使用在事件监听流中可以使用 window.event.stopPropagation() 来阻止事件继续往下流
+
+IE中使用自有的attachEvent函数绑定
+function attachEvent(string eventFlag, function eventFunc)
+eventFlag: 事件名称，但要加上on，如onclick、onmouseover…
+eventFunc: 绑定到事件中执行的动作
+在事件监听流中可以使用 window.event.cancelBubble=true 来阻止事件往上冒泡
+
+
+总结：
+addEventListener(string eventFlag, function eventFunc, [bool useCapture=false])，针对ff，chrome，safari浏览器，false指冒泡阶段，默认为true，指捕获阶段。不过一般我们都用false。（让冒泡有需要再阻止）
+attachEvent(string eventFlag, function eventFunc)，针对ie系列、还有opera浏览器，少了事件处理机制的参数，只指定事件类型（别忘了on）和触发哪个函数。
+
+// 阻止冒泡函数
+var stopEvent = function (event) {
+  e = event || window.event;
+  if (e.stopPropagation) {
+    e.stopPropagation();
+  } else {
+    e.cancelBubble = true;
+  }
+};

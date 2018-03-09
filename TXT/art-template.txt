@@ -1,0 +1,44 @@
+// update 2017.11.16  art-template@4.12.2
+
+// npm install art-template
+
+【添加模板】
+// 将模板写到特定的script标签内，script标签需要添加一些属性（该script标签只写模板，不写其他逻辑）
+// eg: <script id="tmp" type="text/html"><div>{{title}}</div></script>
+
+【渲染模板】
+// 在另外的script标签中给数据进行模板渲染
+var data = {title: 'DEMO'};
+var ele = template('tmp', data); // 调用template()方法 param1 is scriptId、param2 is dataObj
+document.body.innerHTML = ele; // 将渲染好的模板插入body节点作为body的子元素
+
+// css选择器模糊匹配 （辅助）
+<div class="start price goodsId-0 end" data-type="GOLD"></div>
+eg: div[class~="price"]{} // 选中类名中有"price"的div元素
+eg: div[class*="goodsId-"] // 选中类名中含有"goodsId-"部分的div元素 [较为实用]
+eg: div[class^="start"] // 选中类名中以"start"开头的div元素，匹配属性值是第一个类名
+eg: div[class$="end"] // 选中类名中以"end"结尾的div元素，匹配属性值是最后一个类名
+eg: div[data-type|="GOLD"] // 选中属性名为data-type，属性值为GOLD或GOLD-x的div元素，匹配属性值是中划线前为GOLD
+
+// 遍历表达式
+{{each isArr}}
+  <li>{{$index}} - {{$value}}</li>
+{{/each}}
+
+// 条件输出
+{{if bool/表达式}}
+  <div>根据表达式转换的bool值进行判断输出</div>
+{{/if}}
+
+// 嵌入子模板 （这种方法只识别script标签内部）
+{{include '子模板ID'}} // 默认共享当前数据
+{{include '子模板ID' newDataObj}} // 也可使用指定数据
+
+// 引入外部公共模板
+var tmp = `<div>{{title}}</div>`; // [tmp.js] 外部脚本
+↓
+var dataObj = {title: 'GOLD'}; // 用来渲染模板的数据 isObj
+var render = template.compile(tmp); // 使用compile()方法引入保存模板的变量，并返回一个匿名函数，用来渲染模板
+var content = render(dataObj); // 将数据绑定到模板中
+↓
+document.getElementById('xxx').innerHTML = content; // 将渲染好的模板插入到页面中进行展示

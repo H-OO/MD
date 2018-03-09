@@ -1,0 +1,223 @@
+﻿// v3.8.1
+
+---------------------------------------------------------------------
+
+// 先了解webpack四要素：入口entry 输出output loader 插件plugins
+
+【入口entry】
+// position → webpack.config.js
+webpack配置中配置entry属性来指定一个或多个入口起点
+eg: 
+module.exports = {entry: '指定一个入口js文件'};
+
+【输出output】
+// position → webpack.config.js
+webpack配置中配置output属性来指定位置输出webpack所创建的bundles以及命名这些文件
+eg: 
+const path = require('path');
+module.exports = {
+  entry: '指定一个入口js文件',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'xxx.bundle.js'
+  }
+};
+
+【loader】
+webpack默认只能解析js文件
+loader能让webpack额外处理那些非js文件，loader可以将非js文件转换为有效模块，再利用webpack打包能力进行处理
+本质：就是将这些非js类型文件转换成应用程序依赖图可以直接引用的模块
+// position → webpack.config.js
+eg:
+const path = require('path');
+// 配置对象
+const config = {
+  ...
+  module: {
+    rules: [
+      {
+        test: /\.txt$/, // 匹配后缀为.txt的文件
+        use: 'raw-loader' // 使用对应的loader
+      }
+    ]
+  }
+};
+module.exports = config; // 输出
+属性作用说明：
+test: 匹配文件后缀名
+use: 转换这些文件，使其能作为依赖图中可以直接引用的模块，最终添加到bundle中
+使用场景: webpack执行require()或import语句，遇到文件解析路径为'.txt'的时候，先用raw-loader转换为有效模块
+
+【插件plugins】
+const HtmlWebpackPlugin = require('html-webpack-plugin'); // 通过 npm 安装
+const webpack = require('webpack'); // 用于访问内置插件
+const path = require('path');
+const config = {
+  entry: './path/to/my/entry/file.js',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'my-first-webpack.bundle.js'
+  },
+  module: {
+    rules: [
+      {
+        test: /\.txt$/, 
+        use: 'raw-loader' 
+      }
+    ]
+  },
+  plugins: [
+    new webpack.optimize.UglifyJsPlugin(),
+    new HtmlWebpackPlugin({template: './src/index.html'})
+  ]
+};
+module.exports = config;
+
+---------------------------------------------------------------------
+
+【开发搭建步骤】：
+[1]
+npm init // 初始化文件夹
+npm i webpack --save-dev // 将webpack安装到目录
+// 创建两个基本文件夹 app/用来存放逻辑模块 public/用来存放webpack最终输出的js
+// 创建输入js文件和模板html文件 main.js用来作为入口，创建到app/中 index.html用来作为项目模板html，创建到public/中
+// index.html结构初始化 在body标签底部引入webpack打包好的脚本 注意开启webpack-dev-server后，打包的脚本是存储在内存中，项目文件中不可见
+
+[2]
+// 逻辑模块的书写格式
+模块一定需要输出，才可被外部使用
+const tools = {}; // 工具
+module.exports = tools; // 输出工具到外部
+
+[3]
+// 逻辑模块的使用
+在main.js入口文件中导入模块
+position → main.js
+导入方式1：const module = require('./xxx/modulePath'); // 全导入
+导入方式2：import module from './xxx/modulePath'; // 全导入
+导入方式3: import {xxx} from './xxx/modulePath'; // 按需导入
+
+[4]
+// webpack相关配置
+在项目根目录创建webpack.config.js
+position → webpack.config.js
+module.exports = {
+  devtool: 'eval-source-map', // 【dev】映射错误在模块中对应的位置
+  entry: __dirname + '/app/main.js', // 入口js
+  output: { // webpack打包输出的路径和输出文件名称
+    path: __dirname + '/public', // 输出的路径
+    filename: 'bundle.js' // 输出文件的名称
+  }
+};
+ps: __dirname是node.js中的一个全局变量，它指向当前执行脚本所在的目录
+
+[5]
+// 使用webpack-dev-server进行热加载
+npm i webpack-dev-server --save-dev // 在项目文件中安装webpack-dev-server
+position → webpack.config.js
+module.exports = {
+  // 配置devServer
+  devServer: {
+    contentBase: './public', // 为该文件夹提供server服务
+    port: '8080', // 端口号
+    inline: true, // 监听代码改动 热加载
+    historyApiFallback: true // 不跳转 true为所有跳转指向index.html （作用暂时不清楚）
+  }
+};
+
+[6]
+// 设置快捷命令行 （按规范使用双引号）
+position → package.json
+{
+  "scripts" : {
+    "pro": "webpack", // 根据webpack.config.js进行打包，打包出来的文件在输出目录中可见，也就是用来最终打包
+    "dev": "webpack-dev-server --open" // 开发阶段使用，用于热加载 --open命令用于打开浏览器
+  }
+}
+
+[7]
+// 让webpack能处理非js文件 （例如css、fonts、图片等）
+// 有了loader，一切皆模块
+// 处理方法：通过配置webpack，让导入的模块先使用对应的loader执行一遍转换成有效模块再使用
+position → webpack.config.js
+eg：
+babel的安装与配置（babel可用来es6转es5，解决浏览器对es6不完全兼容的问题）
+第一步是babel-loader以及相关依赖包安装：npm i babel-loader babel-core babel-preset-es2015 --save-dev
+第二步是babel-loader的使用配置
+module.exports = {
+  // loader的配置方法
+  module: {
+    // 规则
+    rules: [
+      // babel
+      {
+        test: /\.js$/, // 正则匹配import的模块路径名称 多个匹配写法：/(\.js|\.js)$/
+        use: {
+          loader: 'babel-loader', // 已经安装的loader
+          // ↓↓↓ 提取成.babelrc ↓↓↓
+          options: { // 配置选项
+            presets: [ // 预先设置
+              'es2015'
+            ]
+          }
+          // ↑↑↑ 提取成.babelrc ↑↑↑
+        },
+        exclude: /node_modules/ // 排除该目录下的第三方js
+      },
+      // 其他loader 例如css-loader等
+    ]
+  }
+};
+// 由于babel具有非常多的配置选项，为了让webpack.config.js简洁单一，需要把这部分提取成单独一个.babelrc文件放置到根目录
+根目录创建.babelrc文件（webpack会自动调用.babelrc里的babel配置选项）
+position → .babelrc
+{
+  "presets": ["es2015"]
+}
+
+[8]
+对同一个文件引入多个loader的方法
+position → webpack.config.js
+eg: 处理css文件
+npm i style-loader css-loader --save-dev
+相关配置追加到rules数组中
+rules: [
+  // babel
+  ...
+  // css
+  {
+    test: /\.css$/,
+    use: [ // 多个loader处理一个文件 use isArr
+      {
+        loader: 'style-loader'
+      },
+      {
+        loader: 'css-loader'
+      }
+    ]
+  }
+]
+// css文件导入入口文件的方式
+position → main.js
+import './xxx/xxx.css'; // css导入
+// CSS modules让css具有模块化思想
+把css的类名传递到组件的代码，只对当前组件有效，不必担心类名冲突问题覆盖问题
+{
+  loader: 'css-loader',
+  options: {
+    modules: true // 使用CSS modules 为css注入模块化思想，类名将只对于当前组件有效
+  }
+}
+很强势：导入不同的css文件即便有相同的类名也不会造成不同组件之间的污染
+
+[9]
+css预处理器：sass-loader
+autoprefixer用于添加浏览器前缀
+第一步安装包：npm i sass-loader autoprefixer --save-dev
+
+[10]
+npm install --save-dev postcss-loader autoprefixer
+
+[11]
+插件的使用
+第一步安装相关依赖包

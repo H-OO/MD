@@ -1,0 +1,23 @@
+﻿// 输入框
+<input id="demo" type="text" placeholder="占位符" spellcheck="false">
+
+// 输入框内容获取 ele.value
+var demo = document.getElementById('demo'); // 获取元素
+demo.value; // 获取输入内容
+
+// 封装正则匹配函数 返回值为Boolean
+function matches(str) {
+  var reg = /---/; // 正则表达式
+  return reg.test(str); // 正则匹配字符串 匹配成功为true 错误为false
+}
+
+// 如何实际使用
+demo.onkeyup = function () { // 按键弹起时触发匹配函数
+  if (matches(demo.value)) {
+    console.log('true');
+    // 可以加提示操作 例如输入框文本的样式
+  } else {
+    console.log('false');
+    // 可以加提示操作 例如输入框文本的样式
+  }
+}

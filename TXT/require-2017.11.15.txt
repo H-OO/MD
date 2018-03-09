@@ -1,0 +1,16 @@
+﻿// update 2017.11.15
+
+// require(isArr, func)
+// require(['moduleA', 'moduleB', 'moduleC'], function(moduleA, moduleB, moduleC) {});
+// 回调在前面的所有模块加载完毕后才会执行，解决了依赖性问题
+// 回调的参数是用来接收依赖模块返回的方法，在回调函数中通过moduleA.xxx()方法进行调用
+
+// require.config({}) 对模块加载进行自定义 param is obj
+// {baseUrl: 'js/lib', path: {'jquery': 'jquery.min'}}
+// baseUrl是基本路径，没有设置内部默认与main.js在同一目录下
+
+// require.js加载的模块，采用AMD规范，也就是模块必须使用define()函数来定义
+// 加载一些流行模块，但模块没有采用AMD规范的情况处理
+// 要先用require.config()方法，定义这些非AMD模块的特征
+// require.config({shim: {'xxx':{deps:['依赖'], exports: '值为输出的变量名'}}})
+// shim属性专门用来配置不兼容的模块，exports表明这个模块外部调用时的名称，deps数组表明该模块的依赖

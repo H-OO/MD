@@ -1,0 +1,938 @@
+﻿------------------------------------------------------
+
+节点操作：通过DOM提供的API进行删除、添加、替换或修改。
+
+------------------------------------------------------
+
+DOM级别：
+DOM1 // 映射文档的结构
+DOM2 // 扩充鼠标事件和事件处理接口、遍历和操作文档数的接口、通过对象接口增加可对CSS的支持
+DOM3 // 引入统一方式加载和保存文档的方法，新增验证文档的方法
+
+BOM：
+控制页面以外的部分，HTML5开始很多BOM功能被写入正式规范
+例如：浏览器详细信息的 navigator 对象、提供浏览器所加载页面的详细信息的 location 对象、显示器分辨率详细信息的 screen 对象、对 cookies 的支持
+
+------------------------------------------------------
+
+位运算符的使用：
+&运算符判断一个数的奇偶：偶数 & 1 === 0 、基数 & 1 === 1
+Number取整：~~Num 、Num | 0 、 Num [>>  <<  >>>] 0
+
+------------------------------------------------------
+
+执行环境（execution context）：
+定义了变量或函数有权访问的其他数据，每个执行环境都有一个与之关联的变量对象（variable object），环境中定义的所有变量和函数都保存在这个对象中。
+全局执行环境被认为是 window 对象，因此所有全局变量和函数都是作为 window 对象的属性和方法创建的。
+某个执行环境中的所有代码执行完毕后，该环境被销毁，保存在其中的所有变量和函数定义也随之销毁（全局执行环境直到应用程序退出——例如关闭网页或浏览器——时才会被销毁）。
+当代码在一个环境中执行时，会创建变量对象的一个作用域链（scope chain）。
+作用域链的用途，是保证对执行环境有权访问的所有变量和函数的有序访问。
+
+没有块级作用域
+if () {} 、for () {} // 定义的变量可在外部访问
+
+------------------------------------------------------
+
+字符串操作
+str.trim() // 去首位空格 IE9+
+str.substr() // 一个参数是从该位置开始截取 含第二个参数是共截取多少位
+str.substring() // 一个参数是从该位置开始截取 含第二个参数是截取至该下标前
+str.indexof() // 含第二个参数是从该下标位置开始检索
+str.toLocaleLowerCase() // 字符串转小写 针对地区
+str.toLocaleUpperCase() // 字符串转大写 针对地区
+str.toLowerCase() // 字符串转小写
+str.toUpperCase() // 字符串转大写
+str.match(RegExp) // 字符串检索出与正则匹配的字符并放入一个数组中全部返回 ['检索字符', index: '出现的下标位置', input: '被检索的字符串']
+str.search(RegExp) // 字符串检索出与正则匹配的字符 存在返回1 不存在返回-1
+str.replace(RegExp, '') // 字符串检索出与正则匹配的字符 全局正则 所有匹配的字符都替换成参数二（参数二可以是字符序列 $1自身）
+str.split() // 参数二是指定截取个数
+str.localeCompare() // 判断首字母序列a-z 在参数字母前面返回1 后面返回-1 相同返回0
+
+------------------------------------------------------
+
+RegExp正则检测方法
+RegExp.exec(str) // 检索到返回一个数组['检索字符', index: '出现的下标位置', input: '被检索的字符串']
+RegExp.test(str) // 检索字符串是否存在，返回true或false
+
+------------------------------------------------------
+
+Global对象 （在浏览器中就是 window 对象）
+URL编码方法 encodeURI() 和 encodeURIComponent() // 使用其中一种方法进行编码 确保发送给浏览器的URI有效
+eval() // 类似ECMAScript解析器，在当前位置将参数解析并执行结果 耗性能不推荐使用
+
+window对象
+在全局作用域中声明的所有变量和函数都成为了window对象的属性
+
+------------------------------------------------------
+
+Math对象
+Math.PI
+Math.max() // 取最大值
+Math.min() // 取最小值
+Math.ceil() // 向上取整
+Math.floor() // 向下取整
+Math.round() // 四舍五入
+Math.random() // 随机数
+Math.abs() // 绝对值
+
+------------------------------------------------------
+
+Object对象
+ECMAScript 中有两种属性：数据属性和访问器属性
+
+数据属性：在这个位置可以读取和写入值。有4个描述其行为的特性
+[[Configurable]] // 是否通过delete删除属性，默认为true
+[[Enumerable]] // 是否通过for-in遍历，默认为true
+[[Writable]] // 能否修改属性的值，默认为true
+[[Value]] // 包含这个属性的数据值。在该位置读取值或写入新值，默认为undefined
+
+修改属性默认的特性，使用ECMAScript5的Object.defineProperty()方法 IE8不完全兼容
+Object.defineProperty(属性所在的对象, 属性名, {writable: false, value: 'Hello World'}) // 将该属性设为只读，属性值为Hello World
+调用该方法默认4个特性都是false
+
+访问器属性：访问器属性不包含数据值
+[[Get]] // 在读取属性时调用的函数，默认值为undefined
+[[Set]] // 在写入属性时调用的函数，默认值为undefined
+Object.defineProperty(属性所在的对象, 属性名, {get: function(){}, set: function(){}});
+Object.defineProperties(属性所在的对象, {one:{}, two:{}}) // 定义多个属性的方法
+
+------------------------------------------------------
+
+【工厂模式】
+
+作用：减少代码冗余，避免使用同一个接口创建多个对象导致的代码冗余
+
+function createPerson(name, age, job, sayHi) {
+  var o = new Object();
+  o.name = name;
+  o.age = age;
+  o.job = job;
+  o.sayHi = function (sayHi) {
+    console.log(sayHi);
+  }
+  return o;
+}
+
+var p1 = createPerson('yy1', '18', 'web', 'Hello');
+var p2 = createPerson('yy2', '17', 'web', 'Hi');
+
+优点：在同时创建多个类似对象时，能减少冗余代码
+
+缺点：不能识别对象的类型
+
+------------------------------------------------------
+
+【构造函数模式】
+
+作用：使用构造函数创建对象
+
+function Person(name, age, job, speak) {
+  this.name = name;
+  this.age = age;
+  this.job = job;
+  this.sayHi = function(speak) {
+    console.log(speak);
+  }
+}
+var p1 = new Person('yy1', '18', 'web', 'Hello');
+var p2 = new Person('yy2', '17', 'web', 'Hi');
+
+new 操作符的作用：
+必须要用new操作符来创建Person的新实例，new操作符的作用是改变构造函数内的this指向新对象
+假如没有new操作符，那么this指向window对象，所有新增的属性都会成为window对象的属性，也不会有返回值
+
+以p1为例：var p1 = new Person('yy1', '18', 'web', 'Hello');
+new 的过程分为三步:
+var p1 = {}; // 初始化一个对象p1
+p1._proto_ = Person.prototype // 将对象p1的 __proto__ 属性设置为 Person.prototype
+Person.call(p1, 'yy', '18', 'web', 'Hello') // 调用构造函数Person来初始化p1
+
+执行过程：
+创建一个新对象
+将构造函数的作用域赋给新对象（因此 this 就指向了这个新对象）
+执行构造函数中的代码（为这个新对象添加属性）
+返回新对象
+
+优点：可以将该构造函数创建的实例用instanceof操作符检测出来，将它的实例标识成一种特定的类型
+缺点：Person构造函数中的sayHi方法在每次实例化成对象的时候都要重新创建一遍，相当于每次都要通过new操作符调用Function构造函数创建sayHi方法
+
+初步优化：将sayHi方法放置到构造函数外部，如下
+
+function Person(name, age, job, speak) {
+  this.name = name;
+  this.age = age;
+  this.job = job;
+  this.sayHi = sayHi; // 保存sayHi的地址
+  this.speak = speak; // 保存Hello
+}
+
+function sayHi() {
+  console.log(this.speak); // 对象调用函数，this指向对象本身
+}
+
+var p1 = new Person('yy', '18', 'web', 'Hello');
+
+通过初步优化，sayHi方法已经不需要重复创建可以被重复使用
+
+构造函数存在的问题：由于sayHi方法外置，无法达到真正的封装效果，需要定义多个不同方法就存在较大问题了
+
+
+### 二次理解 (new or this)
+// 假设开发一个插件 将其作为window对象的属性方法
+// 使用则通过 new 操作符，获取创建出来的对象，该对象是为使用者提供调用方法
+window.Plugin = (function () {
+  // 构造函数
+  var p = function () {
+    console.log(this);
+    this.xxx = 'xxx';
+  };
+  // 替换对象原型
+  p.prototype = {
+    init: function () {
+      console.log('init');
+    }
+  };
+  // 将对象返回给外部
+  return p;
+})()
+var test = new Plugin(); // 获取构造函数创建出来的对象 isObj
+test.init(); // log init
+
+new 操作符改变this指向，让this指向构造函数本身
+
+------------------------------------------------------
+
+【原型模式】
+
+原理：
+创建一个新函数，就会根据一组特定的规则为函数创建一个prototype属性，这个属性指向函数的原型对象。
+在默认情况下，所有原型对象都会自动获得一个constructor（构造函数）属性，这个属性包含一个指向prototype属性所在函数的指针。
+
+在当前对象中检索不到属性，
+
+关系： Person --prototype--> 原型对象 、原型对象 --constructor--> Person 、实例化的对象 -- __proto__ --> 原型对象
+
+function Person(speak) {
+  this.speak = speak;
+  Person.prototype.sayHi = function () {
+    console.log(this.speak);
+  }
+}
+
+var p1 = new Person('Hi');
+p1.sayHi(); // Hi
+var p2 = new Person('Hello');
+p2.sayHi(); // Hello
+
+sayHi方法直接添加到了Person的prototype属性中，该方法能被所有该构造函数的实例所共享，换句话说就是p1和p2访问的都是同一个sayHi方法
+
+原型对象上除了sayHi方法，其他方法都是从Object中继承过来的
+
+
+原型对象通过isPrototypeOf()方法来确定对象之间是否存在关系：
+Person.prototype.isPrototypeOf(p1) // true
+
+ECMAScript5增加了一个新方法，叫Object.getPrototypeOf()，该方法返回prototype的值，可以方便地取得一个对象的原型
+Object.getPrototypeOf(p1) == Person.prototype // true
+
+------------------------------------------------------
+
+递归函数
+
+function factorial(num) {
+  if (num <= 1) {
+    return 1;
+  } else {
+    return num * factorial(num - 1);
+  }
+}
+console.log(factorial(4)); // 24
+
+执行过程
+// 4 * func(3)
+//   3 * func(2)
+//     2 * func(1)
+//       func(1) return 1 ↑↑
+
+// return 1 逐级往上计算结果
+// 第一次调用等待递归回结果        
+// 1, 2*1, 3*2 求得func(3)为6
+// 4 * func(3) => 4 * 6
+
+写法升级
+使用arguments对象的callee属性，该属性指向当前整个函数体
+eg: arguments.callee() // 函数体内再次调用该函数体
+
+注意：需要有跳出递归的条件，性能问题可以用数据缓存进行解决
+
+------------------------------------------------------
+
+内存释放回收机制
+
+内存回收
+退出当前函数，函数内部声明所占用的内存空间将被回收
+
+内存泄露
+退出当前函数，由于函数内部存在循环引用关系，该内存空间不会被回收
+eg：
+function func() {
+  var ele = document.getElementById('xxx');
+  ele.onclick = function () {
+    alert(ele.id); // 引用函数体内局部变量ele，导致该内存不能被回收
+  }
+}
+解决方法：
+function func() {
+  var ele = document.getElementById('xxx');
+  var id = ele.id; // 用变量进行值类型保存
+  ele.onclick = function () {
+    alert(id);
+  }
+  // 解决内存泄露的关键步骤 ↓
+  ele = null;
+}
+
+------------------------------------------------------
+
+模仿块级作用域
+
+多次使用for循环时，可以通过创建块级作用域，避免重复声明同一个变量
+
+(function() {
+  // 块级作用域
+  for (;;) {}
+})()
+
+------------------------------------------------------
+
+BOM
+
+主要掌握
+利用location对象中的页面信息
+使用navigator对象了解浏览器
+
+location和navigator都是window对象的属性
+
+location提供了与当前窗口中加载的文档有关的信息，还提供一些导航功能
+window对象和document对象都引用了location对象
+
+------------------------------------------------------
+
+location对象
+
+地址栏信息获取详解
+// http://192.168.1.120:8081/js-high.html?1#2
+console.log(window.location.href); // http://192.168.1.120:8081/js-high.html?t
+console.log(window.location.protocol); // http:
+console.log(window.location.host); // 192.168.1.120:8081
+console.log(window.location.hostname); // 192.168.1.120
+console.log(window.location.port); // 8081
+console.log(window.location.pathname); // /js-high.html
+console.log(window.location.search); // ?1 (需是以?开始往右的内容)
+console.log(window.location.hash); // #2 (需是以#开始往右的内容)
+
+// href 全地址
+// protocol 协议
+// host 域名+端口
+// hostname 域名
+// port 端口
+// pathname 文件路径
+// search ?开始往右的内容
+// hash #开始往右的内容
+
+返回的内容可使用字符串replace方法进行过滤提取
+
+改变地址
+方式1
+location.assign('http:// www.baidu.com');
+方式2
+location.href = 'http:// www.baidu.com';
+方式3
+location.location = 'http:// www.baidu.com';
+
+重新加载页面
+方式1：可能从缓存中读取
+location.reload();
+方式2：从服务器重新加载
+location.reload(true);
+
+------------------------------------------------------
+
+navigator对象
+
+常用
+navigator.language // 浏览器的主语言
+navigator.onLine // 是否连接因特网
+navigator.userAgent // 获取用户浏览器版本号等其他信息
+
+------------------------------------------------------
+
+避免报错中断js引擎的执行
+
+try {
+  // 易报错的代码
+} catch (err) {
+  // 抛出错误信息
+}
+
+------------------------------------------------------
+
+screen对象用于获取屏幕参数
+
+常用
+screen.width // 屏幕宽
+screen.height // 屏幕高
+
+------------------------------------------------------
+
+history对象用于保存用户上网的历史记录
+
+使用 go() 方法可以在用户历史记录中任意跳转
+history.go(-1); // 后退一页
+history.go(1); // 前进一页
+history.go(2); // 前进两页
+
+功能简写方法
+history.back(); // 后退
+history.forward(); // 前进
+
+------------------------------------------------------
+
+客户端能力检测
+
+首先判断通用方案是否有效，可用于处理大部分主流浏览器
+通用方案无效，使用备用方案，作用于个别浏览器
+
+// 能力检测
+
+方式1
+if () { // 通用方案
+
+} else { // 备用方案
+
+}
+
+方式2（推荐）
+使用 typeof 操作符
+
+------------------------------------------------------
+
+客户端怪癖检测
+
+怪癖检测是想要知道浏览器存在什么缺陷（怪癖也就是bug），主要是针对ie
+
+eg：ie8中如果某个实例属性与原型属性同名，那么该实例属性将不会出现在for-in循环中
+
+------------------------------------------------------
+
+DOM
+
+DOM1定义了一个Node接口，该接口将由DOM中的所有节点类型实现
+js中所有节点类型都继承自Node类型，所有的节点都享有相同的基本属性和方法
+
+每个节点都有一个nodeType属性，用来表明节点的类型 (isNum)
+节点常用的nodeType有：
+元素1
+属性2
+文本3
+注释8
+
+每个节点都有一个 childNodes 属性，其中保存着NodeList对象，是一个类数组对象，该类数组对象为该节点的所有子节点 [object NodeList]
+
+每个节点都有一个 childValue 属性，可获取节点的值
+
+每个节点都有一个 parentNode 属性，该属性指向文档树种的父节点
+
+每个节点都有 firstChild 和 lastChild 属性，分别指向 NodeList 对象中的第一个节点和最后一个节点
+
+每个节点都有 previousSibling 和 nextSibling 属性，分别指向上一个节点和下一个节点（查询不到节点返回null）
+
+每个节点都有 children 属性，其中保存着该元素的所有子元素 (isArr)
+
+每个节点都有 hasChildNodes 方法，判断是否存在子节点，返回boolean值
+
+// ie9+
+每个节点都有 childElementCount 属性，返回子元素的个数
+每个节点都有 firstElementChild 和 lastElementChild 属性，分别指向第一个元素节点和最后一个元素节点（查询不到节点返回null）
+每个节点都有 previousElementSibling 和 nextElementSibling 属性，分别指向上一个元素节点和下一个元素节点（查询不到节点返回null）
+
+
+------------------------------------------------------
+
+操作节点
+
+appendChild(param) // 追加节点 param为需要追加的节点
+insertBefore(param1, param2) // 在指定位置插入节点 param1为插入节点 param2为参考节点 （插入节点占据参考节点的位置，参考节点往后挪一位）
+replaceChild(param1, param2) // 替换指定位置的节点 param1为替换节点 param2为参考节点 （替换节点占据参考节点的位置，参考节点被移除）
+removeChild(param) // 移除节点 param为需要移除的节点
+cloneNode() // 克隆节点 （传true则完全克隆，即包含其所有子节点）（不传则只克隆该节点，不含子节点）
+createdElement(param) // 创建元素节点 param为标签名
+
+------------------------------------------------------
+
+Element类型
+
+<div id="el" class="ele" title="el text" data-type="DIY"></div>
+
+var el = document.getElementById('el');
+el.id // 获取元素id
+el.classList // 获取所有类名 （isArr）
+el.getAttribute('data-type') // 获取属性
+el.setAttribute(param1, param2) // 设置属性 param1为属性 param2为属性值
+el.removeAttribute(param) // 移除属性 param为属性
+
+------------------------------------------------------
+
+表格<table>
+
+<table border="1">
+  <tbody>
+    <tr>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+
+------------------------------------------------------
+
+原生选择器
+
+document.querySelector('#id / .class / div / div.active') // 兼容ie8
+
+document.getElementsByClassName('') // ie9+
+
+------------------------------------------------------
+
+H5
+
+操作类名
+classList // ie9+
+替换方案：className.split(' ') // 兼容ie8
+
+classList 属性的相关方法
+add(val) // 添加类名
+remove(val) // 移除类名
+toggle(val) // 切换效果
+contains(val) // 判断指定类名是否存在，返回boolean
+
+document.readyState 属性有两个值
+loading 正在加载文档
+complete 已经加载完文档
+
+contains(param) // 判断两个节点是否存在包含关系，返回值为boolean param应为子节点
+
+------------------------------------------------------
+
+元素大小（较为常用）单位px
+
+// 元素在屏幕上占用的可用空间大小
+offsetWidth // border+padding+content
+offsetHeight // border+padding+content
+offsetLeft // 相对于父容器的left值
+offsetTop // 相对于父容器的top值
+
+// 元素内容及其内边距所占据的空间大小
+clientWidth // padding+content
+clientHeight // padding+content
+
+// 包含滚动内容的元素被隐藏大小
+scrollLeft // 内容区域左侧被隐藏的内容大小
+scrollTop // 内容区域顶部被隐藏的内容大小
+
+------------------------------------------------------
+
+事件流
+
+事件冒泡：事件从被触发节点（也就是最深元素节点）逐级往上传播，若经过的节点有绑定该事件类型，事件会被触发
+
+事件捕获：事件从document对象沿DOM树依次向下寻找到触发事件的实际元素节点
+
+------------------------------------------------------
+
+DOM2级事件处理程序
+
+// 主流浏览器
+addEventListener(param1, param2, param3) // 添加事件监听
+removeEventListener(param1, param2, param3) // 移除事件监听
+
+参数：
+param1为要处理的事件名
+param2为事件被触发时执行的处理函数
+param3为布尔值，true表示在捕获阶段执行处理函数，false表示在冒泡阶段执行处理函数（一般使用false）
+
+注意：
+使用事件移除方法时，要指向同一个处理函数，否则事件移除无效
+
+
+// ie8
+attachEvent(param1, param2) // 添加事件监听
+detachEvent(param1, param2) // 移除事件监听
+
+参数：
+param1为要处理的事件名，需要加on
+param2为事件被触发时执行的处理函数
+
+------------------------------------------------------
+
+DOM0事件处理程序
+
+使用 EventUtil 对象中的 addHandler 和 removeHandler 方法进行事件监听的添加和移除
+
+------------------------------------------------------
+
+主流浏览器event对象
+
+执行处理函数时可以接收一个event对象，该对象包含与创建它的特定事件有关的属性和方法（触发的事件类型不一样，对应的可用属性和方法也不一样）
+
+所有的事件都会拥有以下成员：
+
+bubbles // 表明事件是否冒泡 isBool
+cancelable // 表明是否取消事件的默认行为 isBool
+currentTarget // 事件处理函数正在处理事件的那个元素 isEle
+defaultPrevented // 为true表示已经调用了preventDefault() （DOM3级事件中新增）isBool
+detail // 与事件相关的细节信息 isNum
+eventPhase // 调用事件处理函数的阶段，1表示捕获阶段，2表示处于目标，3表示冒泡阶段 isNum
+preventDefault() // 取消事件的默认行为。如果cancelable为true，则可以使用这个方法
+stopImmediatePropagation() // 取消事件的进一步捕获或冒泡，同时阻止任何事件处理函数被调用（DOM3级事件中新增）
+stopPropagation() // 取消事件的进一步捕获或冒泡。如果bubbles为true，则可以使用这个方法
+target // 事件的目标 isEle
+type // 被触发的事件类型 isStr
+view // 与事件关联的抽象视图。等同于发生事件的window对象
+
+常用：
+target // 事件的目标元素
+stopPropagation() // 阻止事件冒泡 （bubbles为true表示可以使用该方法）
+preventDefault() // 取消事件默认行为 （cancelable为true表示可以使用该方法）
+type // 事件类型
+
+------------------------------------------------------
+
+ie浏览器event对象
+
+window.event
+
+常用：
+srcElement // 事件的目标元素
+cancelBubble // 属性值为true则取消事件冒泡
+returnValue // 属性值为false则取消事件默认行为
+type // 事件类型
+
+------------------------------------------------------
+
+事件类型
+
+UI事件
+load // 页面完全加载后触发
+resize // 窗口大小发生改变时触发
+scroll // 滚动带滚动条的元素中的内容时，在该元素上面触发
+
+焦点事件
+focus // 元素获得焦点时触发
+blur // 元素失去焦点时触发
+
+鼠标事件
+click // 点击左键触发
+dblclick // 双击左键触发
+mousedown // 点击任意按钮触发
+mouseenter // 鼠标移入元素触发，该事件不冒泡
+mouseleave // 鼠标移出元素触发，该事件不冒泡
+mousemove // 鼠标在元素内移动触发
+mouseover // 鼠标移入到元素上方触发
+mouseout // 鼠标在元素上方移出触发
+mouseup // 释放鼠标按钮时触发
+
+滚轮事件
+scroll // 滚动滚轮触发
+
+------------------------------------------------------
+
+移动端开发事件注意事项
+
+iOS
+不支持dblclick事件，移动端双击会放大界面，而且不能修改该行为
+点击元素会触发 mousemove 事件，如果视图没有因此发生改变，那么会依次触发 mousedown、mouseup 和 click 事件
+mousemove 事件也会触发 mouseover 和 mouseout 事件
+双指滑动会触发 scroll 事件
+
+------------------------------------------------------
+
+键盘与文本事件
+
+keydown // 键盘按下任意键触发
+keyup // 释放键盘的按键时触发
+keypress // 有部分按键不会触发
+
+可以通过 event对象 中的 key 属性和 keyCode 属性进行相关操作
+
+------------------------------------------------------
+
+DOM变动事件
+
+DOMSubtreeModified // 
+DOMNodeInserted // 
+DOMNodeInsertedIntoDocument // 
+DOMNodeRemovedFromDocument // 
+DOMAttrModified // 
+DOMCharacterDataModified // 
+
+------------------------------------------------------
+
+beforeunload // 页面跳转时的提醒操作
+eg:
+window.onbeforeunload = function (e) {
+  return confirm(); // 返回bool
+}
+
+DOMContentLoaded // 形成完整的DOM树之后就会触发 （ie8不兼容）
+eg:
+document.addEventListener('DOMContentLoaded', function (e) {
+  // dosomething
+})
+
+hashchange // 地址栏中的hash值发生改变触发
+eg:
+window.addEventListener('hashchange', function (e) {
+  // dosomething
+});
+
+------------------------------------------------------
+
+设备事件
+
+iOS
+orientationchange // 方向改变
+0 // 正常
+90 // 向左旋转90度
+-90 // 向右旋转90度
+180 // 倒置
+
+deviceorientation // 当设备的加速计检测到设备方向改变时，就会触发这个事件
+alpha为z轴（左右旋转）y轴的度数差 0~360
+beta为x轴（前后旋转）z轴的度数差 -180~180
+gamma为y轴（扭转设备）z轴的度数差 -90~90
+
+------------------------------------------------------
+
+触摸屏幕上的元素，会依次触发以下事件：
+touchstart // 
+mouseover // 
+mousemove // 一次
+mousedown // 
+mouseup // 
+click // 
+touchend // 
+
+------------------------------------------------------
+
+事件委托
+
+在js中，添加给页面上的事件处理程序数量会直接关系到页面的整体运行性能
+每个函数都是对象，都会占用内存，内存中的对象越多，性能就越差
+必须事先指定所有事件处理程序，这导致了DOM的访问次数增加，会延迟整个页面交互的就绪时间
+
+以上问题归类为 事件处理程序过多 ，可用事件委托进行解决
+
+事件委托利用了事件冒泡，只指定一个事件处理程序，管理同一类型的所有事件
+
+------------------------------------------------------
+
+移除事件处理程序
+
+正确操作：removeChild() 和 replaceChild()
+
+注意：
+通过 innerHTML 属性删除的元素（指父中innerHTML将自己移除的情况下），由于浏览器不同这部分的事件处理程序有可能不能被回收，在内存中滞留，影响性能
+
+妥善方法：
+1、
+在知道哪个元素即将被移除时，先手动移除该事件处理程序，赋值为null，再执行接下来的其他操作
+2、
+采用事件委托也能有助于解决这个问题
+
+------------------------------------------------------
+
+表单元素 <form></form>
+
+HTMLFormElement独有的属性和方法：
+acceptCharset // 服务器能够处理的字符类型
+action // 接收请求的URL
+elements // 表单所有控件的集合
+enctype // 请求的编码类型
+length // 表单控件的数量
+method // 发送HTTP请求类型，get或post
+name // 表单名称，可用于获取该表单 不推荐使用
+reset() // 重置表单信息，清空所有已输入
+submit() // 提交表单
+target // 用于发送请求和接收响应的窗口名称
+
+常用：
+action // 接收请求的URL
+method // 发送HTTP请求类型，get或post
+
+表单提交
+使用类型为submit的按钮，点击按钮触发submit事件进行表单提交，可以通过阻止该事件的默认行为从而阻止表单的提交
+
+编程式表单提交
+表单元素.submit() // 不会触发submit事件，但需要在使用该方法前进行表单验证
+
+表单重置
+使用类型为reset的按钮，点击按钮触发reset事件对表单内容重置回初始状态，可以通过阻止该事件的默认行为从而阻止表单的重置
+
+编程式表单重置
+表单元素.reset() // 触发reset事件，重置表单
+
+注意：
+提交表单时可能出现的最大问题，就是重复提交表单。需防止用户反复点击提交按钮
+
+------------------------------------------------------
+
+<fieldset>元素 包裹
+
+disabled // 表示是否被禁用
+form // 指向当前字段所属表单的指针
+name // 当前字段的名称
+readOnly // 布尔值，表示当前字段是否只读
+tabIndex // 表示当前字段的切换（tab）序号
+type // 当前字段的类型，如"checkbox"、"radio"，等等
+value // 当前字段将被提交给服务器的值
+
+除了 form 属性之外，可以通过 JavaScript 动态修改其他任何属性
+
+------------------------------------------------------
+
+【14】·【15】
+
+------------------------------------------------------
+
+拖放事件
+
+dragstart // 
+drag // 
+dragend // 
+
+------------------------------------------------------
+
+ECMA定义了7种错误类型：
+
+Error
+EvalError
+RangeError
+ReferenceError
+SyntaxError
+TypeError
+URIError
+
+------------------------------------------------------
+
+JSON
+
+JSON.stringify(); // 该方法将JS对象转成JSON格式的字符串，有三个参数
+参数1：必须，需要转换的对象，isObj
+参数2：可选，只转换数组中含有的属性，可以传null为全部转换，isArr
+参数3：可选，空格缩进，不传值转换出来的JSON格式字符串是无空格不换行的，isNum
+
+JSON.parse() // 该方法将JS格式的字符串转成JS对象，只有一个参数，传JSON格式的字符串
+
+------------------------------------------------------
+
+XMLHttpRequest 对象
+
+用法：
+实例化
+var xhr = new XMLHttpRequest();
+使用open方法
+xhr.open('请求方式', '请求地址', 'bool值是否异步发送请求');
+使用send方法
+xhr.send(); // get为null，post为需要传输的内容
+使用onreadystatechange进行响应监听
+xhr.onreadystatechange = function () {
+  // 会被触发3次 readyState分别为 2,3,4
+};
+
+xhr.status // 200
+xhr.readyState // 有5种状态 0~4
+
+0：未初始化。尚未调用open()方法
+1：启动。已经调用open()方法，但尚未调用send()方法
+2：发送。已经调用send()方法，但尚未接收到响应
+3：接收。已经接收到部分响应数据
+4：完全。已经接收到全部响应数据，可以进行操作使用了
+
+
+注意：每个HTTP请求和响应都会带有相应的头部信息
+Accept
+Accept-Charset
+Accept-Encoding
+Accept-Language
+Connection
+Cookie
+Host
+Referer
+User-Agent
+
+// 获取响应头信息
+xhr.getAllResponseHeaders()
+
+GET请求
+encodeURIComponent() // 编码
+
+------------------------------------------------------
+
+JSONP跨域请求
+
+原理：
+利用script标签可跨域的特性
+步骤：
+先创建 script 元素
+编程式为该元素的src属性赋值请求地址
+再插入body标签底部
+
+js原生方法
+eg：
+var script = document.createElement('script');
+script.src = 'http://xxx?jsonpCallback=jsonpReturn'; // jsonpCallback=jsonpReturn 后台框架决定
+document.body.appendChild(script);
+
+jQ方法
+eg：
+.ajax({
+  url: url,
+  type: 'get',
+  dataType: 'JSONP',
+  jsonp: 'jsonpCallback', // 指定了hash值 jsonpCallback=
+  jsonpCallback: 'jsonpReturn', // 指定了hash值 jsonpCallback=jsonpReturn
+  success: function (data) {
+    console.log(data);
+  }
+})
+
+------------------------------------------------------
+
+cookie的构成
+名称、值、域、路径、失效时间、安全标志
+
+操作方法：
+set设置 / get获取
+document.cookie.
+
+注意：
+测试需要在http协议下，file协议无作用
+
+------------------------------------------------------
+
+web存储机制
+
+【cookie】
+document.cookie = 'key=value';
+
+【sessionStorage】
+window.sessionStorage.setItem('key', 'value'); // 设置/替换
+window.sessionStorage.getItem('key'); // 读取
+window.sessionStorage.removeItem('key'); // 删除
+
+【localStorage】
+window.localStorage.setItem(); // 设置/替换
+window.localStorage.getItem('key'); // 读取
+window.localStorage.removeItem('key'); // 删除
+
+------------------------------------------------------

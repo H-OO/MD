@@ -1,0 +1,26 @@
+﻿var obj = {
+  a: 1
+};
+
+function watch(obj, attr, cb) {
+  var val = obj[attr];
+  Object.defineProperty(obj, attr, {
+    get: function () {
+      return val;
+    },
+    set: function (a) {
+      if (a == val) {
+        return;
+      }
+      cb(a, val);
+      val = a;
+    }
+  });
+}
+
+watch(obj, 'a', function (onew, oold) {
+  console.log(onew);
+  console.log(oold);
+});
+
+obj['a'] = 1;
