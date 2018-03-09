@@ -1,11 +1,189 @@
-﻿--------------------------------------------
+﻿---------------------------------------------
 
-js的多态性：对象多态性是天生的，一个变量既可以指向一个类，又可以随时指向另外一个类
+设计模式铺垫
+了解js独有的面向对象知识，this，掌握函数式编程
 
---------------------------------------------
+---------------------------------------------
 
-【工厂模式】
+多态
+利用对象的多态性，事先决定好不同对象对应该做的行为，接收执行信号后，每个对象负责完成自己的行为
+也就是说，根据同一个消息，有条不紊地分别进行各自的工作
 
-对于js来说，js不存在类型耦合的问题，无需把对象'延迟'到子类创建，也就是说js实际上不需要工厂模式
+---------------------------------------------
 
---------------------------------------------
+Object.getPrototypeOf(obj) 查看对象的原型
+
+---------------------------------------------
+
+Object.create() 方法用于创建对象
+优点：写法简洁
+缺点：在当前js引擎下创建对象的效率比构造函数创建对象要慢
+
+---------------------------------------------
+
+this指向
+
+当函数作为对象的方法被调用时，this 指向该对象
+
+当函数作为普通函数被调用时，this 指向全局对象
+
+当函数作为构造函数使用new运算符调用时，this 指向返回的这个对象
+(构造函数其实也是个普通函数，由于有new运算符，改变了原本的this指向)
+
+当函数使用 call() 或 apply() 方法时，this指向传入的对象，也就是方法的参数
+(用 Function.prototype.call 或 Function.prototype.apply 可以动态地改变传入函数的 this)
+
+---------------------------------------------
+
+call 与 apply 的区别
+
+传入参数形式不同
+apply传两个参数，第一个参数指定了函数体内this的指向，第二个参数为一个带下标的集合
+call传递的参数个数不固定，第一个参数与apply的作用相同
+
+第一个参数为 null，函数体内的 this 会指向默认的宿主对象，在浏览器中则是 window
+
+注意：使用call与apply方法的目的不在于指定this指向，而是可以借用其他对象的方法
+
+作用：可以用于修正this指向丢失问题
+
+---------------------------------------------
+
+变量的生命周期
+
+对于函数内用var关键字声明的局部变量来说，当退出函数时，这些局部变量会随着函数调用的结算而被销毁
+
+---------------------------------------------
+
+缓存机制
+
+从缓存中取已经缓存的处理数据，无需再次通过计算逻辑
+
+将每次传入方法的参数进行保存
+
+先在方法的外部声明一个cache对象，用来缓存键和值
+
+通过方法的arguments获取参数特征
+
+判断缓存对象中是否存在该参数特征，有则取值，无则计算
+
+eg：
+var cache = {}; // 缓存对象
+var func = function () {
+  var key = Array.prototype.join.call(arguments, ','); // 获取参数特征，也就是键
+  // 判断是否缓存
+  if (cache[key]) {
+    return cache[key];
+  }
+  // dosomething
+  cache[key] = result; // 缓存键和值
+  return result;
+};
+
+---------------------------------------------
+
+使用数组的sort方法进行排序
+Array.sort(function (a, b) { // a isNum 、b isNum
+  return a - b;
+})
+// a - b 小到大
+// b - a 大到小
+// a + b 翻转数组
+
+---------------------------------------------
+
+高阶函数
+
+匿名函数作为参数进行传递
+
+var func = function (callback) {
+  if (typeof callback === 'function') {
+    callback(param);
+  }
+};
+
+func(function (param) {
+  console.log(param);
+});
+
+---------------------------------------------
+
+typeof 判断数据类型
+注意typeof关键字判断数组类型时返回的是object
+
+准确的判断方法：
+
+使用Object原型对象toString方法 判断数据类型
+
+Object.prototype.toString.call()
+
+eg: 
+var arr = [];
+
+Object.prototype.toString.call(arr) // [object Array]
+
+Object.prototype.toString.call(arr).slice(8, -1) // Array
+
+---------------------------------------------
+
+for循环优化写法
+var arr = [1, 2, 3];
+for (var i = 0, item; item = arr[i++];) {
+  // dosomething
+}
+
+---------------------------------------------
+
+借用方法
+
+eg:
+var arr = []; // 为该数据push元素
+方法1
+arr.push(1); // 只能单个push
+方法2
+Array.prototype.push.apply(arr, [1, 2, 3]) // 能push多个
+
+---------------------------------------------
+
+函数节流
+
+将即将被执行的函数用 setTimeout 延迟一段时间执行
+
+如果该次延迟执行还没有完成，则忽略接下来调用该函数的请求
+
+实现throttle函数 param1 为需要被执行的函数 、param2 为延迟执行的时间
+
+eg:
+
+// 节流函数
+var throttle = function (fn, interval) {
+  var _fn = fn; // 等待调用的函数
+  var timer; // 延时器
+  var firstTime = true; // 第一次调用的状态
+  return function () {
+    // 第一次执行 立马调用
+    if (firstTime) {
+      firstTime = false;          
+      _fn();
+      return;
+    }
+
+    // 判断延时器是否处于倒计时状态
+    if (timer) {
+      return;
+    }
+
+    // 延时器中转执行
+    timer = setTimeout(function () {
+      clearTimeout(timer);
+      timer = null;
+      _fn();
+    }, interval || 500)
+  }
+};
+
+window.onresize = throttle(function () {
+  console.log(1);
+}, 500)
+
+---------------------------------------------
