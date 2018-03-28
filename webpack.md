@@ -1,10 +1,12 @@
-## webpack
+## webpack @4.2.0
 
 **指令**
 
 * `webpack` // 让 webpack 默认以根目录下的 webpack.config.js 文件来运行
 
 * `webpack --config [config.js]` // --config 是让 webpack 使用某个配置文件来运行，忽略 webpack.config.js 文件的配置
+
+-----------------------------------------------------------------
 
 **Loader**
 
@@ -42,7 +44,7 @@ import img from './xxx.png'; // 引入图片
 
 * `.css` 安装 style-loader、css-loader
 
-* `加载图片` 安装 file-loader
+* `加载图片` 安装 file-loader、url-loader
 
 * `.html` 安装 html-loader
 
@@ -50,6 +52,8 @@ import img from './xxx.png'; // 引入图片
 
 * `clean-webpack-plugin` 清理输出文件夹中不相关文件
 * `html-webpack-plugin` 生成 html 文件
+
+-----------------------------------------------------------------
 
 **Example**
 
@@ -94,7 +98,7 @@ module.exports = {
   }
 };
 ```
-
+-----------------------------------------------------------------
 
 **使用第三方包**
 
@@ -123,9 +127,89 @@ console.log(obj, arr); // {} []
 import {obj} from 'test.js'; // 部分引入
 console.log(obj); // {}
 ```
+-----------------------------------------------------------------
 
 **url-loader和file-loader的关系**
 
 url-loader中包含有file-loader，是对file-loader进行封装；使用无需依赖于file-loader
 
-文件大小大于limit，url-loader会调用file-loader进行处理，参数也会直接传给file-loader，只需要安装url-loader即可
+小图片转Base64减少HTTP请求
+```javascript
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.(png|svg|jpg|gif)$/,
+        use: [{
+          loader: 'url-loader',
+          options: {
+            limit: '3072', // 图片大小大于limit时不转换
+            name: 'img/[name].[hash].[ext]' // 在输出文件夹中的路径（自动创建img文件夹存放所有图片）
+          }
+        }]
+      }
+    ]
+  }
+};
+```
+文件大小大于limit，url-loader会调用file-loader进行处理，参数也会直接传给file-loader
+
+-----------------------------------------------------------------
+
+**devtool**
+
+作用：在使用打包后文件的某一行代码时，可以追溯打包前所在源代码的位置
+
+注意：只在开发环境下使用
+
+常用选项：`devtool: 'source-map'`
+
+-----------------------------------------------------------------
+
+**观察模式**
+
+作用：观察文件改动，自动执行编译
+
+命令`webpack --watch`
+
+缺点：浏览器需要手动重新加载
+
+-----------------------------------------------------------------
+
+**webpack-dev-server**
+
+作用：提供web服务，自动执行编译，并实现浏览器自动重新加载
+
+使用：先安装`webpack-dev-server`，再修改配置文件
+
+```javascript
+// webpack.config.js
+module.exports = {
+  // web服务
+  devServer: {
+    host: '192.168.1.xxx', // IP地址，默认localhost
+    port: '5000', // 端口号，默认8080
+    contentBase: './dist' // devServer访问该目录的文件
+  }
+};
+```
+-----------------------------------------------------------------
+
+**模块热替换**
+
+HMR(Hot Module Replacement) 是webpack的内置插件
+
+作用：只更新变更内容，无需全部编译，以节省宝贵的开发时间
+
+使用场景：只用于开发环境
+
+开启HMR
+```javascript
+module.exports = {
+  devServer: {
+    
+  }
+};
+```
+
+-----------------------------------------------------------------
