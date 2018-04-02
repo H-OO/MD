@@ -6,6 +6,8 @@
 
 * `webpack --config [config.js]` // --config 是让 webpack 使用某个配置文件来运行，忽略 webpack.config.js 文件的配置
 
+* `webpack --mode [production|development]` // 4.0新特性 --mode 是让webpack知道当前处于生产环境还是开发环境，生产环境会自动压缩代码
+
 -----------------------------------------------------------------
 
 **Loader**
@@ -55,7 +57,7 @@ import img from './xxx.png'; // 引入图片
 
 -----------------------------------------------------------------
 
-**Example**
+**使用模板生成HTML文件并自动载入CSS和JS**
 
 ```javascript
 // 安装 html-loader html-webpack-plugin
@@ -187,8 +189,8 @@ module.exports = {
 module.exports = {
   // web服务
   devServer: {
-    host: '192.168.1.xxx', // IP地址，默认localhost
-    port: '5000', // 端口号，默认8080
+    host: '192.168.1.xxx', // 域名/IP，默认localhost
+    port: '5000', // 端口，默认8080
     contentBase: './dist' // devServer访问该目录的文件
   }
 };
@@ -199,17 +201,140 @@ module.exports = {
 
 HMR(Hot Module Replacement) 是webpack的内置插件
 
-作用：只更新变更内容，无需全部编译，以节省宝贵的开发时间
+作用：当项目体积较大时，只更新变更内容，无需全部编译，以节省宝贵的开发时间
 
 使用场景：只用于开发环境
 
+可能存在的疑问：HTML上的修改不能自动触发浏览器的刷新
+
+目前对HMR的理解：  
+HMR仅限于入口文件import的CSS和JS文件进行热替换  
+修改模板HTML文件的任何内容会触发重新编译，但浏览器不会热替换，也不自动刷新  
+修改HTML文件无法实时看到修改后的效果，需要手动刷新浏览器  
+
+那么问题来了，HMR不就变得鸡肋了吗！  
+我认为不是的，当项目体积较大时，修改某个模块会导致全部模块进行重新编译，这是个耗时的操作  
+但有了HMR，就能监听某个模块发生改动，只替换有改动的模块，而不会进行重新编译  
+HMR解决了改动某个模块就要全部模块进行重新编译的耗时等待问题，节省出宝贵的开发时间
+
+对于修改HTML文件不进行热替换的问题，...若有修改到就手动刷新浏览器即可，毕竟HMR解决了关键的耗时问题
+
 开启HMR
 ```javascript
+// webpack.config.js
+const webpack = require('webpack');
 module.exports = {
   devServer: {
-    
+    contentBase: './dist', // devServer访问该目录的文件
+    hot: true // 【HMR】
+  },
+  plugins: [
+    new webpack.NamedModulesPlugin(), // 容易查看要修补(patch)的依赖，辅助HMR
+    new webpack.HotModuleReplacementPlugin() // 【HMR】
+  ]
+};
+
+// main.js
+import module1 from './module1.js';
+module1(); // 执行模块1返回的函数
+if (module.hot) {
+  // 监听 module1.js 文件的改动 改动则执行回调函数
+  module.hot.accept('./module1.js', function() {
+    module1(); // 模块1返回的函数重新执行
+  });
+}
+
+// module1.js
+export default function module1() {
+  const content = 'webpack';
+  console.log(content);
+}
+```
+-----------------------------------------------------------------
+
+**添加一个公共模块**
+
+目的：方法共享，同时在使用该模块时，未引用的代码会被webpack标记
+
+可以通过 `--mode production` 参数，删除标记的未引用代码
+
+格式如下：
+```javascript
+// math.js
+export function first() {
+  // todosomething...
+}
+export function second() {
+  // todosomething...
+}
+
+// use
+import {first} from './math.js'; // 引入first
+```
+-----------------------------------------------------------------
+
+**生产环境构建-配置**
+
+开发环境和生产环境的构建目标差异很大，所以需要独立去写每个环境的webpack配置
+
+但仍要遵循不重复原则，保留一个通用配置，然后将配置不同点与相同点进行合并
+
+安装 `npm install --save-dev webpack-merge` 
+
+-----------------------------------------------------------------
+
+**生产环境构建-指定环境**
+
+可以通过参数指定 `--config [production|development]`
+
+访问`process.env.NODE_ENV`变量可获取当前环境
+
+-----------------------------------------------------------------
+
+**抽离CSS**
+
+安装 `extract-text-webpack-plugin` 插件
+
+使用
+```javascript
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+// 单实例
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        // use: ['style-loader', 'css-loader']
+        use: ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: 'css-loader' // sass ['css-loader', 'sass-loader']
+        })
+      }
+    ]
+  },
+  plugins: [
+    new ExtractTextPlugin({
+      filename: 'style.css' // 输出文件路径+文件名
+    })
+  ]
+};
+
+// 多实例
+const extractCSS = new ExtractTextPlugin('stylesheets/[name]-one.css');
+const extractSCSS = new ExtractTextPlugin('stylesheets/[name]-two.css');
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: extractCSS.extract(['css-loader', 'postcss-loader'])
+      },
+      {
+        test: /\.scss$/,
+        use: extractSCSS.extract(['css-loader', 'sass-loader'])
+      }
+    ]
   }
 };
 ```
-
 -----------------------------------------------------------------
