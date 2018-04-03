@@ -1,5 +1,11 @@
 ## webpack @4.2.0
 
+目的：了解webpack4.x新特性及使用配置
+
+PS:此文档仅适用于webpack4.x以上版本
+
+-----------------------------------------------------------------
+
 **指令**
 
 * `webpack` // 让 webpack 默认以根目录下的 webpack.config.js 文件来运行
@@ -59,6 +65,8 @@ import img from './xxx.png'; // 引入图片
 
 **使用模板生成HTML文件并自动载入CSS和JS**
 
+注意：处理图片的路径需要 `html-loader`
+
 ```javascript
 // 安装 html-loader html-webpack-plugin
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -102,6 +110,19 @@ module.exports = {
 ```
 -----------------------------------------------------------------
 
+**清理dist目录下的不相关文件**
+
+```javascript
+// webpack.config.js
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+module.exports = {
+  plugins: [
+    new CleanWebpackPlugin(['dist']) // 指定dist目录
+  ]
+};
+```
+-----------------------------------------------------------------
+
 **使用第三方包**
 
 所有的第三方包必须遵循ES6模块写法：  
@@ -131,9 +152,15 @@ console.log(obj); // {}
 ```
 -----------------------------------------------------------------
 
-**url-loader和file-loader的关系**
+**file-loader与url-loader**
 
-url-loader中包含有file-loader，是对file-loader进行封装；使用无需依赖于file-loader
+file-loader 和 url-loader 可以接收并加载任何文件，例如图片、字体等；然后将其输出到构建目录
+
+url-loader和file-loader的关系：url-loader中包含有file-loader，是对file-loader进行封装
+
+-----------------------------------------------------------------
+
+**加载图片**
 
 小图片转Base64减少HTTP请求
 ```javascript
@@ -158,6 +185,22 @@ module.exports = {
 
 -----------------------------------------------------------------
 
+**加载字体**
+
+```javascript
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.(woff|woff2|eot|ttf|otf)$/,
+        use: ['file-loader']
+      }
+    ]
+  }
+};
+```
+-----------------------------------------------------------------
+
 **devtool**
 
 作用：在使用打包后文件的某一行代码时，可以追溯打包前所在源代码的位置
@@ -165,6 +208,24 @@ module.exports = {
 注意：只在开发环境下使用
 
 常用选项：`devtool: 'source-map'`
+
+-----------------------------------------------------------------
+
+**mode**
+
+webpack4 的新特性
+
+作用：指定当前环境，自动设置全局环境变量
+
+```
+// 方式1：加入命令
+--mode [devlopment|production]
+
+// 方式2：加入配置文件
+module.exports = {
+  mode: ['devlopment'|'production']
+};
+```
 
 -----------------------------------------------------------------
 
@@ -256,7 +317,7 @@ export default function module1() {
 
 目的：方法共享，同时在使用该模块时，未引用的代码会被webpack标记
 
-可以通过 `--mode production` 参数，删除标记的未引用代码
+生产环境下 `--mode production` 或 `mode: 'production'`，会删除标记的未引用代码
 
 格式如下：
 ```javascript
@@ -275,11 +336,33 @@ import {first} from './math.js'; // 引入first
 
 **生产环境构建-配置**
 
-开发环境和生产环境的构建目标差异很大，所以需要独立去写每个环境的webpack配置
+开发环境和生产环境的构建目标差异很大，可以独立去写每个环境的webpack配置
 
 但仍要遵循不重复原则，保留一个通用配置，然后将配置不同点与相同点进行合并
 
-安装 `npm install --save-dev webpack-merge` 
+安装 `npm install --save-dev webpack-merge`
+
+```javascript
+// webpack.common.js
+module.exports = {
+  entry: {},
+  module: {},
+  plugins: [],
+  output: {}
+};
+
+// webpack.[dev|prod].js
+const merge = require('webpack-merge');
+const common = require('./webpack.common.js');
+// 将差异部分与公共部分进行合并
+module.exports = merge(common, {
+  module: {},
+  plugins: []
+})
+```
+通过执行命令 `--config webpack.[dev|prod].js`，指定使用配置文件
+
+注意：webpack4 加入 `mode` 这一新特性，通过 `devlopment|production` 选项会执行最优的默认配置
 
 -----------------------------------------------------------------
 
@@ -304,10 +387,10 @@ module.exports = {
     rules: [
       {
         test: /\.css$/,
-        // use: ['style-loader', 'css-loader']
+        // use: ['style-loader', 'css-loader'] // 修改前
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
-          use: 'css-loader' // sass ['css-loader', 'sass-loader']
+          use: 'css-loader'
         })
       }
     ]
@@ -327,7 +410,7 @@ module.exports = {
     rules: [
       {
         test: /\.css$/,
-        use: extractCSS.extract(['css-loader', 'postcss-loader'])
+        use: extractCSS.extract(['css-loader', 'postcss-loader']) // postcss-loader下面会介绍
       },
       {
         test: /\.scss$/,
@@ -337,4 +420,124 @@ module.exports = {
   }
 };
 ```
+-----------------------------------------------------------------
+
+**postcss-loader**
+
+作用：样式自动添加浏览器前缀
+
+注意：postcss.config.js是必须的
+
+使用
+```javascript
+// postcss.config.js
+module.exports = {
+  plugins: [
+    require('autoprefixer') // 自动加前缀
+  ]
+}
+
+// webpack.config.js
+// 多实例编译情景
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const extractCSS = new ExtractTextPlugin('[name]-one.css'); // css
+const extractSASS = new ExtractTextPlugin('[name]-two.css'); // sass
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: extractCSS.extract(['css-loader', 'postcss-loader'])
+      },
+      {
+        test: /\.sass$/,
+        use: extractSASS.extract(['css-loader', 'postcss-loader', 'sass-loader'])
+      }
+    ]
+  },
+  plugins: [
+    extractCSS,
+    extractSASS
+  ]
+}
+
+```
+-----------------------------------------------------------------
+
+**抽离第三方包**
+
+注意：webpack4.0版本废除了CommonsChunkPlugin
+
+新的抽离方法使用 `optimization.splitChunks.cacheGroups`
+
+```javascript
+// webpack.config.js
+// example
+module.exports = {
+  entry: {
+    index: './src/main.js',
+    vendor: ['lodash'] // 第三方
+  },
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        // key需与entry入口的key保持一致
+        index: {
+          chunks: 'initial',
+					minChunks: 2,
+					maxInitialRequests: 5, // The default limit is too small to showcase the effect
+					minSize: 0 // This is example is too small to create commons chunks
+        },
+        vendor: {
+          test: /node_modules/,
+					chunks: 'initial',
+					name: 'vendor',
+					priority: 10,
+					enforce: true
+        }
+      }
+    }
+  }
+};
+```
+-----------------------------------------------------------------
+
+**ES6转ES5**
+
+问题：webpack无法对ES6的语法进行转换，ES6语法可能存在浏览器兼容问题
+
+babel-loader的作用正是实现对使用了ES6语法的.js文件进行处理
+
+安装 `npm i -D babel-loader babel-core babel-preset-es2015`
+
+* babel-loader 专门处理js文件
+
+* babel-core 提供一系列api，babel-loader实际上调用了babel-core的api
+
+* babel-preset-es2015 告诉babel使用哪种转码规则进行文件处理
+
+babel的转码规则有：`babel-preset-es2015、babel-preset-latest、babel-preset-env`  
+官方推荐使用 `babel-preset-env`
+
+```javascript
+// webpack.config.js
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/, // 不处理
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['es2015'] // ES6 转 ES5
+          }
+        }
+      }
+    ]
+  }
+};
+```
+
+
 -----------------------------------------------------------------
