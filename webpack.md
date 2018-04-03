@@ -156,7 +156,7 @@ console.log(obj); // {}
 
 file-loader 和 url-loader 可以接收并加载任何文件，例如图片、字体等；然后将其输出到构建目录
 
-url-loader和file-loader的关系：url-loader中包含有file-loader，是对file-loader进行封装
+file-loader和url-loader的关系：url-loader中包含有file-loader，是对file-loader进行封装
 
 -----------------------------------------------------------------
 
