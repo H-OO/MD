@@ -539,5 +539,15 @@ module.exports = {
 };
 ```
 
-
 -----------------------------------------------------------------
+
+### 指南
+
+目标：从零搭建webpack进行模块化开发
+
+* 创建文件夹 `src` 输入目录、`dist` 输出目录
+* 装包 `webpack webpack-cli webpack-dev-server`
+* 创建文件 `webpack.config.js`
+* package.json 配置 scripts `"build": "webpack"`、`"start": "webpack-dev-server --open"`
+* 安装loader `html-loader css-loader style-loader post-loader sass-loader node-sass url-loader file-loader babel-loader babel-core babel-preset-es2015`
+* 安装plugins `clean-webpack-plugin html-webpack-plugin extract-text-webpack-plugin`
