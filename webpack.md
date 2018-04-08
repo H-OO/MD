@@ -549,5 +549,321 @@ module.exports = {
 * 装包 `webpack webpack-cli webpack-dev-server`
 * 创建文件 `webpack.config.js`
 * package.json 配置 scripts `"build": "webpack"`、`"start": "webpack-dev-server --open"`
-* 安装loader `html-loader css-loader style-loader post-loader sass-loader node-sass url-loader file-loader babel-loader babel-core babel-preset-es2015`
+* 安装常用loader `html-loader css-loader style-loader postcss-loader sass-loader node-sass url-loader file-loader`
+* 安装babel相关loader `babel-loader babel-core babel-preset-es2015 babel-polyfill babel-plugin-transform-runtime`
 * 安装plugins `clean-webpack-plugin html-webpack-plugin extract-text-webpack-plugin`
+
+**基本目录**
+
+```
+|-dist(输出文件夹)
+|-src(源代码)
+|-webpack.config.js(webpack配置)
+|-postcss.config.js(postcss配置)
+|-package.json(添加快捷命令，查看已安装的包)
+```
+
+**单页配置**
+
+```javascript
+// webpack.config.js
+const path = require('path');
+const webpack = require('webpack');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const extractCSS = new ExtractTextPlugin('[name]-one.css');
+const extractSASS = new ExtractTextPlugin('[name]-two.css');
+module.exports = {
+  mode: 'production', // development | production
+  // devtool: 'source-map', // 用于查看代码在编译前的位置
+  devServer: {
+    host: '192.168.1.xxx',
+    contentBase: './dist', // 监听该目录
+    openPage: 'Home/Home.html',
+    inline: true, // 用来支持dev-server自动刷新的配置
+    historyApiFallback: true, // SPA任意跳转或404响应可以指向首页
+    hot: true // 【HMR】
+  },
+  entry: {
+    main: './src/index.js',
+    vendor: ['lodash'] // 第三方
+  },
+  module: {
+    rules: [
+      {
+        test: /\.html$/,
+        use: ['html-loader']
+      },
+      {
+        test: /\.css$/,
+        // use: ['style-loader', 'css-loader']
+        use: extractCSS.extract(['css-loader', 'postcss-loader'])
+      },
+      {
+        test: /\.sass$/,
+        use: extractSASS.extract([
+          'css-loader',
+          'postcss-loader',
+          'sass-loader'
+        ])
+      },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            plugins: ['transform-runtime'], // 转ES6原生API 例如Promise、Object.assign
+            presets: ['es2015'] // ES6转ES5
+          }
+        }
+      },
+      {
+        test: /\.(png|svg|jpg|gif)$/,
+        use: [{
+          loader: 'url-loader',
+          options: {
+            limit: '3072',
+            name: 'img/[name].[hash].[ext]'
+          }
+        }]
+      }
+    ]
+  },
+  // webpack4 新特性 (抽离后需要注入HTML才能生效) 【只在最终打包阶段使用，否则会使devServer异常】
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        main: {
+          chunks: 'initial',
+					minChunks: 2,
+					maxInitialRequests: 5, // The default limit is too small to showcase the effect
+					minSize: 0 // This is example is too small to create commons chunks
+        },
+        vendor: {
+          test: /node_modules/,
+					chunks: 'initial',
+					name: 'vendor',
+					priority: 10,
+					enforce: true
+        }
+      }
+    }
+  },
+  plugins: [
+    new CleanWebpackPlugin(['dist']),
+    new HtmlWebpackPlugin({
+      filename: 'index.html', // 输出文件名
+      template: path.resolve(__dirname, 'src/index.html'), // 模板路径
+      chunks: ['main', 'vendor'], // 指定所需的js
+      inject: 'body', // 将js注入body标签
+      // 压缩html
+      minify: {
+        removeAttributeQuotes: true, // 移除属性的引号
+        removeComments: true, // 移除注释
+        collapseWhitespace: true // 移除空格
+      }
+    }),
+    extractCSS,
+    extractSASS,
+    // new webpack.NamedModulesPlugin(), // 【HMR】
+    // new webpack.HotModuleReplacementPlugin() // 【HMR】
+  ],
+  output: {
+    filename: '[name].bundle.js',
+    path: path.resolve(__dirname, 'dist')
+  }
+};
+
+// postcss.config.js
+module.exports = {
+  plugins: [
+    require('autoprefixer')
+  ]
+};
+
+// package.json
+{
+  "name": "webpack4",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack",
+    "start": "webpack-dev-server --open"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.4",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "clean-webpack-plugin": "^0.1.19",
+    "css-loader": "^0.28.11",
+    "extract-text-webpack-plugin": "^4.0.0-beta.0",
+    "file-loader": "^1.1.11",
+    "html-loader": "^0.5.5",
+    "html-webpack-plugin": "^3.2.0",
+    "lodash": "^4.17.5",
+    "node-sass": "^4.8.3",
+    "postcss-loader": "^2.1.3",
+    "sass-loader": "^6.0.7",
+    "style-loader": "^0.20.3",
+    "url-loader": "^1.0.1",
+    "webpack": "^4.4.1",
+    "webpack-cli": "^2.0.13",
+    "webpack-dev-server": "^3.1.1"
+  }
+}
+```
+
+**多页配置**
+
+src目录结构
+
+```
+|-src
+   |-Home
+       |-Home.html
+       |-Home.js
+       |-image
+           |-test1.png
+           |-test2.png
+   |-News
+      |-News.html
+      |-News.js
+```
+
+```javascript
+// webpack.config.js
+const path = require('path');
+const webpack = require('webpack');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const extractCSS = new ExtractTextPlugin('[name]-one.css');
+const extractSASS = new ExtractTextPlugin('[name]-two.css');
+const Home = new HtmlWebpackPlugin({
+  filename: 'Home/Home.html', // 输出文件名
+  template: path.resolve(__dirname, 'src/Home/Home.html'), // 模板路径
+  chunks: ['Home', 'vendor'], // 指定所需的js
+  inject: 'body', // 将js注入body标签
+  // 压缩html
+  minify: {
+    removeAttributeQuotes: true, // 移除属性的引号
+    removeComments: true, // 移除注释
+    collapseWhitespace: true // 移除空格
+  }
+});
+const News = new HtmlWebpackPlugin({
+  filename: 'News/News.html', // 输出文件名
+  template: path.resolve(__dirname, 'src/News/News.html'), // 模板路径
+  chunks: ['News'], // 指定所需的js
+  inject: 'body', // 将js注入body标签
+  // 压缩html
+  minify: {
+    removeAttributeQuotes: true, // 移除属性的引号
+    removeComments: true, // 移除注释
+    collapseWhitespace: true // 移除空格
+  }
+});
+module.exports = {
+  mode: 'production', // development | production
+  // devtool: 'source-map', // 用于查看代码在编译前的位置
+  devServer: {
+    host: '192.168.1.xxx',
+    contentBase: './dist', // 监听该目录
+    openPage: 'Home/Home.html',
+    inline: true, // 用来支持dev-server自动刷新的配置
+    historyApiFallback: true, // SPA任意跳转或404响应可以指向首页
+    hot: true // 【HMR】
+  },
+  entry: {
+    Home: './src/Home/Home.js',
+    News: './src/News/News.js',
+    vendor: ['lodash'] // 第三方
+  },
+  module: {
+    rules: [
+      {
+        test: /\.html$/,
+        use: ['html-loader']
+      },
+      {
+        test: /\.css$/,
+        // use: ['style-loader', 'css-loader']
+        use: extractCSS.extract(['css-loader', 'postcss-loader'])
+      },
+      {
+        test: /\.sass$/,
+        use: extractSASS.extract([
+          'css-loader',
+          'postcss-loader',
+          'sass-loader'
+        ])
+      },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            plugins: ['transform-runtime'], // 转ES6原生API 例如Promise、Object.assign
+            presets: ['es2015'] // ES6转ES5
+          }
+        }
+      },
+      {
+        test: /\.(png|svg|jpg|gif)$/,
+        use: [{
+          loader: 'url-loader',
+          options: {
+            limit: '3072',
+            name: 'image/[name].[hash:8].[ext]'
+          }
+        }]
+      }
+    ]
+  },
+  // webpack4 新特性 (抽离后需要注入HTML才能生效) 【只在最终打包阶段使用，否则会使devServer异常】
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        Home: {
+          chunks: 'initial',
+					minChunks: 2,
+					maxInitialRequests: 5, // The default limit is too small to showcase the effect
+					minSize: 0 // This is example is too small to create commons chunks
+        },
+        vendor: {
+          test: /node_modules/,
+					chunks: 'initial',
+					name: 'vendor',
+					priority: 10,
+					enforce: true
+        }
+      }
+    }
+  },
+  plugins: [
+    new CleanWebpackPlugin(['dist']),
+    Home,
+    News,
+    extractCSS,
+    extractSASS,
+    // new webpack.NamedModulesPlugin(), // 【HMR】
+    // new webpack.HotModuleReplacementPlugin() // 【HMR】
+  ],
+  output: {
+    filename: '[name]/[name].bundle.js', // 输出目录下的文件路径
+    path: path.resolve(__dirname, 'dist'), // 输出目录
+    publicPath: '../' // 静态资源路径 (build ../) (start /)
+  }
+};
+
+```
+-----------------------------------------------------------------
